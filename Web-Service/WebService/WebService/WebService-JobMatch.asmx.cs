@@ -24,6 +24,7 @@ namespace WebService
         //cade de conexion con somee
         //private static SqlConnection con = new SqlConnection(@"workstation id=JobMatch.mssql.somee.com;packet size=4096;user id=SrTeo201_SQLLogin_1;pwd=9rcknmwx7c;data source=JobMatch.mssql.somee.com;persist security info=False;initial catalog=JobMatch;TrustServerCertificate=True");
 
+        //login
         [WebMethod]
         public string Login(string email, string password)
         {
@@ -105,7 +106,7 @@ namespace WebService
                 return "Error: " + ex.Message;
             }
         }
-
+        //registro de Candidato y usuario
         [WebMethod]
         public string RegistroCandidato(string nombre, string email, string contraseña, string experiencia, string educacion, string habilidades, string ubicacion)
         {
@@ -210,11 +211,99 @@ namespace WebService
             }
         }
 
-
+        //registro de Enpresa y usuario
         [WebMethod]
-        public string RegistroEmpresa()
+        public string RegistroEmpresa(string nombre, string email, string contraseña, string nombreEmpresa, string direccion, string telefono, string descripcion)
         {
-            return "0";
+            // Validaciones de campos vacíos
+            if (string.IsNullOrEmpty(nombre) && string.IsNullOrEmpty(email) && string.IsNullOrEmpty(contraseña) && string.IsNullOrEmpty(nombreEmpresa))
+            {
+                return "Todos los campos obligatorios deben ser llenados.";
+            }
+            else if (string.IsNullOrWhiteSpace(nombre))
+            {
+                return "El nombre es obligatorio";
+            }
+            else if (string.IsNullOrWhiteSpace(email))
+            {
+                return "El email es obligatorio";
+            }
+            else if (string.IsNullOrWhiteSpace(contraseña))
+            {
+                return "La contraseña es obligatoria";
+            }
+            else if (string.IsNullOrWhiteSpace(nombreEmpresa))
+            {
+                return "El nombre de empresa es obligatoria";
+            }
+
+            try
+            {
+                con.Open();
+
+                // Verificar si el correo electrónico ya está registrado
+                string queryEmailCheck = "SELECT COUNT(*) FROM Usuarios WHERE email = @Email";
+                SqlCommand cmdEmailCheck = new SqlCommand(queryEmailCheck, con);
+                cmdEmailCheck.Parameters.AddWithValue("@Email", email);
+                int emailCount = (int)cmdEmailCheck.ExecuteScalar();
+
+                if (emailCount > 0)
+                {
+                    con.Close();
+                    return "El correo electrónico ya está registrado.";
+                }
+
+                // Iniciar una transacción
+                SqlTransaction transaction = con.BeginTransaction();
+
+                try
+                {
+                    // Paso 1: Insertar el usuario en la tabla Usuarios
+                    string queryUsuario = "INSERT INTO Usuarios (nombre, email, contraseña, tipo_usuario) VALUES (@Nombre, @Email, @Contraseña, 'EMPRESA'); SELECT SCOPE_IDENTITY();";
+                    SqlCommand cmdUsuario = new SqlCommand(queryUsuario, con, transaction);
+                    cmdUsuario.Parameters.AddWithValue("@Nombre", nombre);
+                    cmdUsuario.Parameters.AddWithValue("@Email", email);
+                    cmdUsuario.Parameters.AddWithValue("@Contraseña", contraseña);
+
+                    // Ejecutar la consulta y obtener el usuario_id generado
+                    int usuarioId = Convert.ToInt32(cmdUsuario.ExecuteScalar());
+
+                    // Paso 2: Insertar la empresa en la tabla Empresas
+                    string queryEmpresa = "INSERT INTO Empresas (usuario_id, nombre_empresa, direccion, telefono, descripcion) VALUES (@UsuarioId, @NombreEmpresa, @Direccion, @Telefono, @Descripcion)";
+                    SqlCommand cmdEmpresa = new SqlCommand(queryEmpresa, con, transaction);
+                    cmdEmpresa.Parameters.AddWithValue("@UsuarioId", usuarioId);
+                    cmdEmpresa.Parameters.AddWithValue("@NombreEmpresa", nombreEmpresa);
+                    cmdEmpresa.Parameters.AddWithValue("@Direccion", direccion);
+                    cmdEmpresa.Parameters.AddWithValue("@Telefono", telefono);
+                    cmdEmpresa.Parameters.AddWithValue("@Descripcion", descripcion);
+
+                    cmdEmpresa.ExecuteNonQuery();
+
+                    // Confirmar la transacción
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    // Revertir la transacción en caso de error
+                    transaction.Rollback();
+                    throw new Exception("Error durante el registro: " + ex.Message);
+                }
+                finally
+                {
+                    con.Close();
+                }
+
+                return "Registro de empresa exitoso";
+            }
+            catch (Exception ex)
+            {
+                if (con.State == System.Data.ConnectionState.Open)
+                {
+                    con.Close();
+                }
+                return "Error: " + ex.Message;
+            }
         }
+
     }
 }

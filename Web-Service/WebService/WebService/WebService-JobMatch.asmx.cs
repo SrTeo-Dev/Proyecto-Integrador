@@ -108,64 +108,51 @@ namespace WebService
         }
         //registro de Candidato y usuario
         [WebMethod]
-        public string RegistroCandidato(string nombre, string email, string contraseña, string experiencia, string educacion, string habilidades, string ubicacion)
+        public string RegistroCandidato(string nombre, string email, string contraseña, string ubicacion)
         {
+            // Validaciones de campos vacíos
+            if (string.IsNullOrWhiteSpace(nombre) && string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(contraseña) && string.IsNullOrWhiteSpace(ubicacion))
+            {
+                return "Llenar todas las credenciales";
+            }
+            else if (string.IsNullOrWhiteSpace(nombre))
+            {
+                return "El nombre es obligatorio";
+            }
+            else if (string.IsNullOrWhiteSpace(email))
+            {
+                return "El email es obligatorio";
+            }
+            else if (string.IsNullOrWhiteSpace(contraseña))
+            {
+                return "La contraseña es obligatoria";
+            }
+            else if (string.IsNullOrWhiteSpace(ubicacion))
+            {
+                return "La ubicación es obligatoria";
+            }
+
             try
             {
-                // Validar que los parámetros no estén vacíos o solo contengan espacios en blanco
-                if (string.IsNullOrWhiteSpace(nombre) && string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(contraseña) && string.IsNullOrWhiteSpace(experiencia) && string.IsNullOrWhiteSpace(educacion) && string.IsNullOrWhiteSpace(habilidades) && string.IsNullOrWhiteSpace(ubicacion))
-                {
-                    return "Llenar todas las credenciales";
-                }
-                else if (string.IsNullOrWhiteSpace(nombre))
-                {
-                    return "El nombre es obligatorio";
-                }
-                else if (string.IsNullOrWhiteSpace(email))
-                {
-                    return "El email es obligatorio";
-                }
-                else if (string.IsNullOrWhiteSpace(contraseña))
-                {
-                    return "La contraseña es obligatoria";
-                }
-                else if (string.IsNullOrWhiteSpace(experiencia))
-                {
-                    return "La experiencia es obligatoria";
-                }
-                else if (string.IsNullOrWhiteSpace(educacion))
-                {
-                    return "La educación es obligatoria";
-                }
-                else if (string.IsNullOrWhiteSpace(habilidades))
-                {
-                    return "Las habilidades son obligatorias";
-                }
-                else if (string.IsNullOrWhiteSpace(ubicacion))
-                {
-                    return "La ubicación es obligatoria";
-                }
-
                 con.Open();
+
+                // Verificar si el correo electrónico ya está registrado
+                string queryEmailCheck = "SELECT COUNT(*) FROM Usuarios WHERE email = @Email";
+                SqlCommand cmdEmailCheck = new SqlCommand(queryEmailCheck, con);
+                cmdEmailCheck.Parameters.AddWithValue("@Email", email);
+                int emailCount = (int)cmdEmailCheck.ExecuteScalar();
+
+                if (emailCount > 0)
+                {
+                    con.Close();
+                    return "El correo electrónico ya está registrado.";
+                }
 
                 // Iniciar una transacción
                 SqlTransaction transaction = con.BeginTransaction();
 
                 try
                 {
-                    // Verificar si el email ya está registrado
-                    string queryEmailCheck = "SELECT COUNT(*) FROM Usuarios WHERE email = @Email";
-                    SqlCommand cmdEmailCheck = new SqlCommand(queryEmailCheck, con, transaction);
-                    cmdEmailCheck.Parameters.AddWithValue("@Email", email);
-                    int emailCount = (int)cmdEmailCheck.ExecuteScalar();
-
-                    if (emailCount > 0)
-                    {
-                        transaction.Rollback();
-                        con.Close();
-                        return "El email ya está registrado";
-                    }
-
                     // Paso 1: Insertar el usuario en la tabla Usuarios
                     string queryUsuario = "INSERT INTO Usuarios (nombre, email, contraseña, tipo_usuario) VALUES (@Nombre, @Email, @Contraseña, 'CANDIDATO'); SELECT SCOPE_IDENTITY();";
                     SqlCommand cmdUsuario = new SqlCommand(queryUsuario, con, transaction);
@@ -177,12 +164,9 @@ namespace WebService
                     int usuarioId = Convert.ToInt32(cmdUsuario.ExecuteScalar());
 
                     // Paso 2: Insertar el perfil del candidato en la tabla Perfiles_Candidatos
-                    string queryCandidato = "INSERT INTO Perfiles_Candidatos (usuario_id, experiencia, educacion, habilidades, ubicacion) VALUES (@UsuarioId, @Experiencia, @Educacion, @Habilidades, @Ubicacion)";
+                    string queryCandidato = "INSERT INTO Perfiles_Candidatos (usuario_id, ubicacion) VALUES (@UsuarioId, @Ubicacion)";
                     SqlCommand cmdCandidato = new SqlCommand(queryCandidato, con, transaction);
                     cmdCandidato.Parameters.AddWithValue("@UsuarioId", usuarioId);
-                    cmdCandidato.Parameters.AddWithValue("@Experiencia", experiencia);
-                    cmdCandidato.Parameters.AddWithValue("@Educacion", educacion);
-                    cmdCandidato.Parameters.AddWithValue("@Habilidades", habilidades);
                     cmdCandidato.Parameters.AddWithValue("@Ubicacion", ubicacion);
 
                     cmdCandidato.ExecuteNonQuery();
@@ -196,7 +180,7 @@ namespace WebService
                 }
                 catch (Exception)
                 {
-                    // Si hay un error, deshacer la transacción
+                    // Revertir la transacción en caso de error
                     transaction.Rollback();
                     throw;
                 }
@@ -213,7 +197,7 @@ namespace WebService
 
         //registro de Enpresa y usuario
         [WebMethod]
-        public string RegistroEmpresa(string nombre, string email, string contraseña, string nombreEmpresa, string direccion, string telefono, string descripcion)
+        public string RegistroEmpresa(string nombre, string email, string contraseña, string nombreEmpresa)
         {
             // Validaciones de campos vacíos
             if (string.IsNullOrEmpty(nombre) && string.IsNullOrEmpty(email) && string.IsNullOrEmpty(contraseña) && string.IsNullOrEmpty(nombreEmpresa))
@@ -234,7 +218,7 @@ namespace WebService
             }
             else if (string.IsNullOrWhiteSpace(nombreEmpresa))
             {
-                return "El nombre de empresa es obligatoria";
+                return "El nombre de la empresa es obligatorio";
             }
 
             try
@@ -269,13 +253,10 @@ namespace WebService
                     int usuarioId = Convert.ToInt32(cmdUsuario.ExecuteScalar());
 
                     // Paso 2: Insertar la empresa en la tabla Empresas
-                    string queryEmpresa = "INSERT INTO Empresas (usuario_id, nombre_empresa, direccion, telefono, descripcion) VALUES (@UsuarioId, @NombreEmpresa, @Direccion, @Telefono, @Descripcion)";
+                    string queryEmpresa = "INSERT INTO Empresas (usuario_id, nombre_empresa) VALUES (@UsuarioId, @NombreEmpresa)";
                     SqlCommand cmdEmpresa = new SqlCommand(queryEmpresa, con, transaction);
                     cmdEmpresa.Parameters.AddWithValue("@UsuarioId", usuarioId);
                     cmdEmpresa.Parameters.AddWithValue("@NombreEmpresa", nombreEmpresa);
-                    cmdEmpresa.Parameters.AddWithValue("@Direccion", direccion);
-                    cmdEmpresa.Parameters.AddWithValue("@Telefono", telefono);
-                    cmdEmpresa.Parameters.AddWithValue("@Descripcion", descripcion);
 
                     cmdEmpresa.ExecuteNonQuery();
 
@@ -304,6 +285,7 @@ namespace WebService
                 return "Error: " + ex.Message;
             }
         }
+
 
     }
 }

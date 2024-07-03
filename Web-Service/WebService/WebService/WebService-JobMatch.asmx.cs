@@ -19,8 +19,10 @@ namespace WebService
     public class WebService_JobMatch : System.Web.Services.WebService
     {
         //cambiar la cadena conexion segun la base
+        //cadena local 2
+        private static SqlConnection con = new SqlConnection(@"Data Source=(localdb)\SQLMATEO;Initial Catalog=JobM2;Integrated Security=True");
         //cadena local
-        private static SqlConnection con = new SqlConnection(@"Data Source=(localdb)\SQLMATEO;Initial Catalog=JobMatch;Integrated Security=True");
+       // private static SqlConnection con = new SqlConnection(@"Data Source=(localdb)\SQLMATEO;Initial Catalog=JobMatch;Integrated Security=True");
         //cade de conexion con somee
         //private static SqlConnection con = new SqlConnection(@"workstation id=JobMatch.mssql.somee.com;packet size=4096;user id=SrTeo201_SQLLogin_1;pwd=9rcknmwx7c;data source=JobMatch.mssql.somee.com;persist security info=False;initial catalog=JobMatch;TrustServerCertificate=True");
 

@@ -1,0 +1,118 @@
+/* Estilos para la sección de Login */
+.main {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #fff;
+    padding: 0;
+    margin: 0;
+}
+
+.hero {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 400px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.hero-content {
+    text-align: center;
+}
+
+.hero-content h2 {
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+.hero-content p {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.login-form .form-group {
+    margin-bottom: 15px;
+}
+
+.login-form .form-group label {
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: block;
+    color: #fff;
+}
+
+.login-form .form-group input {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.btn {
+    padding: 10px 20px;
+    background: #ff9900;
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    border-radius: 5px;
+    transition: background 0.3s;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background: #e68a00;
+}
+
+/* Estilos adicionales */
+.hero:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('../img/fondopor.jpg') no-repeat center center/cover;
+    z-index: -1;
+    opacity: 0.8; /* Ajusta la opacidad según sea necesario */
+    border-radius: 10px;
+}
+
+.footer {
+    background: #333;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Estilos para el pie de página del formulario */
+.form-footer {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #fff;
+}
+
+.form-footer a {
+    color: #ff9900;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.form-footer a:hover {
+    color: #e68a00;
+}
+
+.form-footer span {
+    margin: 0 10px;
+    color: #fff;
+}
